@@ -24,15 +24,19 @@ const Cart = () => {
 
   // Fonction pour gérer la suppression d'un produit
   const handleRemove = (id) => {
-    dispatch({
-      type: 'REMOVE_FROM_CART',
-      payload: { id },
-    });
+    if (window.confirm('Êtes-vous sûr de vouloir retirer ce produit du panier ?')) {
+      dispatch({
+        type: 'REMOVE_FROM_CART',
+        payload: { id },
+      });
+    }
   };
 
   // Fonction pour vider le panier
   const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
+    if (window.confirm('Êtes-vous sûr de vouloir vider le panier ?')) {
+      dispatch({ type: 'CLEAR_CART' });
+    }
   };
 
   // Naviguer vers la page de commande

@@ -1,21 +1,31 @@
 // src/components/Navbar.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCart();
+  const [username, setUsername] = useState('Utilisateur');
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   // Simuler l'état d'authentification avec le localStorage
   const isAuthenticated = !!localStorage.getItem('token');
-  const username = localStorage.getItem('username') || 'Utilisateur'; // Récupère le nom d'utilisateur si connecté
 
   const handleLogout = () => {
-    // Supprimer les informations d'authentification
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    navigate('/login');
+    // Demander confirmation avant de se déconnecter
+    if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      // Supprimer les informations d'authentification
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      navigate('/login');
+    }
   };
 
   return (
