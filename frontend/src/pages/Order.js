@@ -186,7 +186,13 @@ const Order = () => {
           <div className="flex justify-end mt-4">
             <button
               onClick={handleSubmit}
-              className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+              disabled={!shippingMethod || shippingMethod === "Non spécifiée" || !paymentMethod || paymentMethod === "Non spécifiée"}
+              className={`px-6 py-2 rounded ${
+                (!shippingMethod || shippingMethod === "Non spécifiée" || !paymentMethod || paymentMethod === "Non spécifiée")
+                  ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+              title={(!shippingMethod || shippingMethod === "Non spécifiée" || !paymentMethod || paymentMethod === "Non spécifiée") ? "Veuillez sélectionner une méthode de livraison et de paiement" : ""}
             >
               Confirmer la commande
             </button>
