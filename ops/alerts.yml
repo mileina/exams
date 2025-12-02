@@ -1,0 +1,268 @@
+groups:
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # ===== CPU ALERTS =====
+      - alert: HighCPUUsage
+        expr: |
+          (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "CPU élevé sur {{ $labels.instance }}"
+          description: "CPU > 80% pendant 5 min. Valeur actuelle: {{ $value | humanize }}%"
+
+      - alert: CriticalCPUUsage
+        expr: |
+          (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "🚨 CPU CRITIQUE sur {{ $labels.instance }}"
+          description: "CPU > 95% pendant 2 min. Action requise!"
+
+      # ===== MÉMOIRE ALERTS =====
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Mémoire élevée sur {{ $labels.instance }}"
+          description: "Mém > 80% pendant 5 min. Valeur: {{ $value | humanize }}%"
+
+      - alert: CriticalMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "🚨 Mémoire CRITIQUE sur {{ $labels.instance }}"
+          description: "Mém > 95%. Intervention immédiate!"
+
+      # ===== DISQUE ALERTS =====
+      - alert: HighDiskUsage
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse|squashfs"} / 
+           node_filesystem_size_bytes{fstype!~"tmpfs|fuse|squashfs"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Disque élevé: {{ $labels.device }}"
+          description: "Utilisation disque > 80%. Valeur: {{ $value | humanize }}%"
+
+      - alert: CriticalDiskUsage
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse|squashfs"} / 
+           node_filesystem_size_bytes{fstype!~"tmpfs|fuse|squashfs"})) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "🚨 Disque CRITIQUE: {{ $labels.device }}"
+          description: "Disque > 95%. Espace disque critique!"
+
+      # ===== LOAD AVERAGE =====
+      - alert: HighLoadAverage
+        expr: |
+          node_load5 > 4
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Load average élevé sur {{ $labels.instance }}"
+          description: "Load 5min > 4. Valeur: {{ $value | humanize }}"
+
+  - name: application_alerts
+    interval: 30s
+    rules:
+      # ===== SERVICE AVAILABILITY =====
+      - alert: ServiceDown
+        expr: |
+          up{job=~"backend|gateway|mongodb"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "🚨 SERVICE DOWN: {{ $labels.job }}"
+          description: "{{ $labels.instance }} ne répond pas depuis 2 min"
+
+      - alert: ServiceUnreachable
+        expr: |
+          up{job=~"backend|gateway"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Service inaccessible: {{ $labels.job }}"
+          description: "{{ $labels.instance }} - vérifier connectivité réseau"
+
+      # ===== HTTP ERRORS =====
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{status=~"5.."}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Taux d'erreur élevé: {{ $labels.service }}"
+          description: "Erreurs 5xx > 1%. Taux: {{ $value | humanizePercentage }}"
+
+      - alert: CriticalErrorRate
+        expr: |
+          rate(http_requests_total{status=~"5.."}[1m]) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "🚨 Taux d'erreur CRITIQUE: {{ $labels.service }}"
+          description: "Erreurs 5xx > 5%. Taux: {{ $value | humanizePercentage }}"
+
+      # ===== RESPONSE TIME =====
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Temps de réponse élevé: {{ $labels.service }}"
+          description: "P95 latency > 1s. Valeur: {{ $value | humanizeDuration }}"
+
+      - alert: CriticalResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: performance
+        annotations:
+          summary: "🚨 Latency CRITIQUE: {{ $labels.service }}"
+          description: "P95 latency > 5s. Valeur: {{ $value | humanizeDuration }}"
+
+      # ===== REQUEST RATE =====
+      - alert: ZeroRequestRate
+        expr: |
+          rate(http_requests_total[1m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Aucune requête détectée: {{ $labels.service }}"
+          description: "Le service ne reçoit pas de requêtes depuis 5 min"
+
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # ===== MONGODB ALERTS =====
+      - alert: MongoDBDown
+        expr: |
+          up{job="mongodb"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "🚨 MongoDB is DOWN"
+          description: "MongoDB n'est pas accessible depuis 1 min"
+
+      - alert: MongoDBHighConnections
+        expr: |
+          mongodb_connections{state="current"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "MongoDB: connexions élevées"
+          description: "Connexions actuelles > 80. Valeur: {{ $value }}"
+
+      - alert: MongoDBSlowQueries
+        expr: |
+          rate(mongodb_operation_time_seconds_sum[5m]) / rate(mongodb_operation_time_seconds_count[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "MongoDB: requêtes lentes"
+          description: "Temps moyen requête > 1s. Valeur: {{ $value | humanizeDuration }}"
+
+  - name: ssl_alerts
+    interval: 3600s
+    rules:
+      # ===== SSL CERTIFICATE ALERTS =====
+      - alert: SSLCertificateExpiringCritical
+        expr: |
+          (ssl_certificate_not_after_seconds - time()) / 86400 < 7
+        labels:
+          severity: critical
+          component: ssl
+        annotations:
+          summary: "🚨 Certificat SSL CRITIQUE: {{ $labels.domain }}"
+          description: "Expire dans {{ $value | humanize }} jours. Action requise!"
+
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          (ssl_certificate_not_after_seconds - time()) / 86400 < 30
+        labels:
+          severity: warning
+          component: ssl
+        annotations:
+          summary: "Certificat SSL expire bientôt: {{ $labels.domain }}"
+          description: "Expire dans {{ $value | humanize }} jours"
+
+      - alert: SSLCertificateExpired
+        expr: |
+          ssl_certificate_not_after_seconds < time()
+        labels:
+          severity: critical
+          component: ssl
+        annotations:
+          summary: "🚨 Certificat SSL EXPIRÉ: {{ $labels.domain }}"
+          description: "Le certificat est expiré! Intervention immédiate!"
+
+  - name: nginx_alerts
+    interval: 30s
+    rules:
+      # ===== NGINX ALERTS =====
+      - alert: NginxDown
+        expr: |
+          up{job="nginx"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: webserver
+        annotations:
+          summary: "🚨 Nginx est DOWN"
+          description: "Nginx n'est pas accessible depuis 1 min"
+
+      - alert: NginxHighErrorRate
+        expr: |
+          rate(nginx_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: webserver
+        annotations:
+          summary: "Nginx: taux d'erreur élevé"
+          description: "Erreurs 5xx élevées (taux: {{ $value | humanizePercentage }})"
+

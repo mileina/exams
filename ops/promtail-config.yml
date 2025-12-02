@@ -1,0 +1,106 @@
+server:
+  http_listen_port: 9080
+  log_level: info
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+positions:
+  filename: /tmp/positions.yaml
+
+scrape_configs:
+  # Logs de l'application (backend)
+  - job_name: backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: backend
+          __path__: /var/log/cloud/backend/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)$'
+      - labels:
+          level:
+      - timestamp:
+          format: '2006-01-02 15:04:05'
+          location: Local
+
+  # Logs du gateway
+  - job_name: gateway
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: gateway
+          __path__: /var/log/cloud/gateway/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)$'
+      - labels:
+          level:
+      - timestamp:
+          format: '2006-01-02 15:04:05'
+          location: Local
+
+  # Logs de notifications
+  - job_name: notifications
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: notifications
+          __path__: /var/log/cloud/notifications/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)$'
+      - labels:
+          level:
+      - timestamp:
+          format: '2006-01-02 15:04:05'
+          location: Local
+
+  # Logs de stock
+  - job_name: stock
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: stock
+          __path__: /var/log/cloud/stock/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)$'
+      - labels:
+          level:
+      - timestamp:
+          format: '2006-01-02 15:04:05'
+          location: Local
+
+  # Logs système
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          __path__: /var/log/syslog
+
+  # Logs Nginx
+  - job_name: nginx
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          __path__: /var/log/nginx/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<timestamp>[^\]]+)\] "(?P<method>\w+) (?P<uri>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<bytes_sent>\d+) "(?P<referer>[^"]*)" "(?P<user_agent>[^"]*)"'
+      - labels:
+          method:
+          status:
+      - timestamp:
+          format: '02/Jan/2006:15:04:05 -0700'
+          location: UTC
+

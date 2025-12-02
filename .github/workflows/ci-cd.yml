@@ -1,0 +1,91 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - backend
+          - gateway
+          - microservices/notifications
+          - microservices/stock-management
+          - frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            gateway/package-lock.json
+            microservices/notifications/package-lock.json
+            microservices/stock-management/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ matrix.service }}
+
+      - name: Lint/Build/Tests (if present)
+        run: |
+          npm run lint --if-present
+          npm run build --if-present
+          npm test --if-present -- --watch=false
+        working-directory: ${{ matrix.service }}
+
+  deploy_preprod:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    environment: preproduction
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Déploiement préproduction (SSH)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /opt/cloud
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f docker-compose.preproduction.yml pull || true
+            docker compose -f docker-compose.preproduction.yml up -d --build
+            docker system prune -f
+
+  deploy_prod:
+    needs: deploy_preprod
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Déploiement production (SSH, après approbation)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_PROD || secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER_PROD || secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY_PROD || secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT_PROD || secrets.SSH_PORT || 22 }}
+          script: |
+            cd /opt/cloud
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f docker-compose.production.yml pull || true
+            docker compose -f docker-compose.production.yml up -d --build
+            docker system prune -f

@@ -1,0 +1,96 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'meetly-platform'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (métriques système)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+        labels:
+          instance: 'production-server'
+          environment: 'production'
+
+  # Backend API
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['localhost:5000']
+        labels:
+          service: 'backend'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Gateway
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['localhost:8000']
+        labels:
+          service: 'gateway'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Nginx (via nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['localhost:9113']
+        labels:
+          service: 'nginx'
+          environment: 'production'
+
+  # MongoDB (via mongodb-prometheus-exporter)
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['localhost:9216']
+        labels:
+          service: 'mongodb'
+          environment: 'production'
+
+  # Préproduction
+  - job_name: 'backend-preprod'
+    static_configs:
+      - targets: ['preprod.internal:5000']
+        labels:
+          service: 'backend'
+          environment: 'preprod'
+    metrics_path: '/metrics'
+
+  - job_name: 'gateway-preprod'
+    static_configs:
+      - targets: ['preprod.internal:8000']
+        labels:
+          service: 'gateway'
+          environment: 'preprod'
+    metrics_path: '/metrics'
+
+  - job_name: 'node-preprod'
+    static_configs:
+      - targets: ['preprod.internal:9100']
+        labels:
+          instance: 'preprod-server'
+          environment: 'preprod'
+
+  # AlertManager (pour monitoring)
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['localhost:9093']
+
