@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { validators } from '../utils/formValidation';
+import { sanitizeInput } from '../utils/sanitization';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,7 @@ const Register = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,8 +24,31 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation côté client pour un mot de passe fort
+    const validationErrors = {};
+    const passwordError = validators.password(formData.password, { minLength: 8 });
+    const emailError = validators.email(formData.email);
+    const usernameError = validators.username(formData.username);
+
+    if (passwordError) validationErrors.password = passwordError;
+    if (emailError) validationErrors.email = emailError;
+    if (usernameError) validationErrors.username = usernameError;
+
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setError('Veuillez corriger les erreurs avant de continuer.');
+      return;
+    }
+
     try {
-      await axios.post('http://localhost:5000/api/auth/register', formData);
+      const payload = {
+        username: sanitizeInput(formData.username, 'plain'),
+        email: sanitizeInput(formData.email, 'plain'),
+        password: formData.password
+      };
+
+      await axios.post('http://localhost:5000/api/auth/register', payload);
       alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
       navigate('/login');
     } catch (err) {
@@ -51,24 +77,27 @@ const Register = () => {
           placeholder="Nom d'utilisateur"
           value={formData.username}
           onChange={handleChange}
-          className="border border-gray-300 p-2 w-full mb-4"
+          className="border border-gray-300 p-2 w-full mb-1"
         />
+        {fieldErrors.username && <p className="text-red-500 text-sm mb-2">{fieldErrors.username}</p>}
         <input
           type="email"
           name="email"
           placeholder="Adresse email"
           value={formData.email}
           onChange={handleChange}
-          className="border border-gray-300 p-2 w-full mb-4"
+          className="border border-gray-300 p-2 w-full mb-1"
         />
+        {fieldErrors.email && <p className="text-red-500 text-sm mb-2">{fieldErrors.email}</p>}
         <input
           type="password"
           name="password"
           placeholder="Mot de passe"
           value={formData.password}
           onChange={handleChange}
-          className="border border-gray-300 p-2 w-full mb-4"
+          className="border border-gray-300 p-2 w-full mb-1"
         />
+        {fieldErrors.password && <p className="text-red-500 text-sm mb-2">{fieldErrors.password}</p>}
         <button type="submit" className="bg-blue-500 text-white p-2 w-full rounded">S'inscrire</button>
       </form>
     </div>
