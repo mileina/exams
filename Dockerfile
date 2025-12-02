@@ -2,12 +2,11 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Copier et installer dépendances frontend
-COPY ./frontend/package*.json ./
-RUN npm install
+# Copier le code source complet du frontend
+COPY frontend ./
 
-# Copier le code source
-COPY ./frontend ./
+# Installer dépendances
+RUN npm install
 
 # Build React
 RUN npm run build
