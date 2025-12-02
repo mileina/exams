@@ -48,7 +48,7 @@ const Register = () => {
         password: formData.password
       };
 
-      await axios.post('http://localhost:5000/api/auth/register', payload);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, payload);
       alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
       navigate('/login');
     } catch (err) {
