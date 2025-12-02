@@ -20,12 +20,12 @@ const Order = () => {
     const missingFields = [];
     if (cart.length === 0) missingFields.push("panier");
     if (!shippingAddress) missingFields.push("adresse de livraison");
-    if (!shippingMethod) missingFields.push("méthode de livraison");
-    if (!paymentMethod) missingFields.push("méthode de paiement");
+    if (!shippingMethod || shippingMethod === "Non spécifiée") missingFields.push("méthode de livraison");
+    if (!paymentMethod || paymentMethod === "Non spécifiée") missingFields.push("méthode de paiement");
 
     if (missingFields.length > 0) {
       alert(
-        `Informations manquantes pour la commande :\n${missingFields
+        `Veuillez sélectionner :\n${missingFields
           .map((field) => `• ${field}`)
           .join("\n")}`
       );
