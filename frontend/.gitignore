@@ -4,6 +4,8 @@
 /node_modules
 /.pnp
 .pnp.js
+# Autoriser le suivi du lockfile
+# (ne pas ignorer package-lock.json)
 
 # testing
 /coverage
