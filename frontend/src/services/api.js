@@ -8,21 +8,18 @@ const API_BASE_URL = (() => {
     console.log('🔗 API URL from env:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
-  
-  // 2. Si REACT_APP_API_URL est défini, l'utiliser
-  if (process.env.REACT_APP_API_URL) {
-    console.log('🔗 API URL (env):', process.env.REACT_APP_API_URL + '/api');
-    return process.env.REACT_APP_API_URL + '/api';
-  }
-  // 3. En local (localhost:3000)
+  // 2. En local (localhost:3000)
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('🔗 API URL (local dev):', 'http://localhost:5000/api');
-    return 'http://localhost:5000/api';
+    console.log('🔗 API URL (local dev):', 'http://localhost:5000');
+    return 'http://localhost:5000';
   }
-  // 4. Sur Render (déduire du hostname du frontend)
-  // Frontend: https://exams1-1.onrender.com → Backend: https://exams-backend.onrender.com
-  const backendUrl = window.location.hostname.replace('exams1-1', 'exams-backend');
-  const apiUrl = `https://${backendUrl}/api`;
+  // 3. Sur Render (exams1-uemk.onrender.com)
+  if (window.location.hostname === 'exams1-1.onrender.com') {
+    console.log('🔗 API URL (production):', 'https://exams1-uemk.onrender.com');
+    return 'https://exams1-uemk.onrender.com';
+  }
+  // 4. Fallback pour autres domaines
+  const apiUrl = `https://${window.location.hostname}`;
   console.log('🔗 API URL (production):', apiUrl);
   return apiUrl;
 })();
