@@ -1,3 +1,4 @@
+console.log('--- Backend starting ---');
 // server.js
 const express = require('express');
 const cors = require('cors');
