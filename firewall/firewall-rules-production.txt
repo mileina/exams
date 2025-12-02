@@ -1,0 +1,36 @@
+# Firewall Rules - PRODUCTION Environment
+# Created with ufw (Uncomplicated Firewall)
+
+# Format:
+# To: Port/Protocol    Action    From
+# --: ---- --------    ------    ----
+
+# Incoming rules (allow)
+22/tcp                  ALLOW     Anywhere       # SSH (CHANGE PORT!)
+80/tcp                  ALLOW     Anywhere       # HTTP - Frontend
+443/tcp                 ALLOW     Anywhere       # HTTPS - Frontend (SSL)
+5000/tcp                ALLOW     Anywhere       # Backend API (use reverse proxy!)
+
+# Internal network rules (allow)
+172.17.0.0/16          ALLOW     Anywhere       # Docker internal network
+
+# BLOCKED - NOT EXPOSED TO PUBLIC
+27017/tcp               DENY      Anywhere       # MongoDB - Internal only
+27018/tcp               DENY      Anywhere       # MongoDB - Internal only
+3001/tcp                DENY      Anywhere       # Notifications - Internal only
+3002/tcp                DENY      Anywhere       # Stock Management - Internal only
+
+# Outgoing rules (allow all by default)
+Anywhere                ALLOW OUT Anywhere
+
+# Incoming policy (deny all others)
+DEFAULT DENY INCOMING
+DEFAULT ALLOW OUTGOING
+
+# IMPORTANT NOTES:
+# 1. Change SSH port (22) to something like 2222 in production
+# 2. Use a reverse proxy (Nginx/Caddy) in front of your services
+# 3. Implement rate limiting for API endpoints
+# 4. Set up DDoS protection
+# 5. Monitor firewall logs: sudo ufw logging on
+# 6. Use SSL/TLS certificates (Let's Encrypt)

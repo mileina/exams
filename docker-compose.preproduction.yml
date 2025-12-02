@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    container_name: preprod-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - NODE_ENV=staging
+    depends_on:
+      - backend
+    networks:
+      - preprod-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: preprod-backend
+    ports:
+      - '5000:5000'
+    environment:
+      - MONGO_URI=mongodb://preprod-mongo:27017/preprod_db
+      - NODE_ENV=staging
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - preprod-mongo
+    networks:
+      - preprod-network
+    restart: unless-stopped
+
+  preprod-mongo:
+    image: mongo:latest
+    container_name: preprod-mongo
+    ports:
+      - '27018:27017'
+    environment:
+      - MONGO_INITDB_DATABASE=preprod_db
+    volumes:
+      - preprod-mongo-data:/data/db
+    networks:
+      - preprod-network
+    restart: unless-stopped
+
+  notifications:
+    build: ./microservices/notifications
+    container_name: preprod-notifications
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=staging
+    depends_on:
+      - backend
+    networks:
+      - preprod-network
+    restart: unless-stopped
+
+  stock-management:
+    build: ./microservices/stock-management
+    container_name: preprod-stock-management
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=staging
+    depends_on:
+      - backend
+    networks:
+      - preprod-network
+    restart: unless-stopped
+
+volumes:
+  preprod-mongo-data:
+
+networks:
+  preprod-network:
+    driver: bridge

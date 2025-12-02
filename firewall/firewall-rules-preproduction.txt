@@ -1,0 +1,23 @@
+# Firewall Rules - PREPRODUCTION Environment
+# Created with ufw (Uncomplicated Firewall)
+
+# Format:
+# To: Port/Protocol    Action    From
+# --: ---- --------    ------    ----
+
+# Incoming rules (allow)
+22/tcp                  ALLOW     Anywhere       # SSH
+80/tcp                  ALLOW     Anywhere       # HTTP
+443/tcp                 ALLOW     Anywhere       # HTTPS
+3000/tcp                ALLOW     Anywhere       # Frontend
+5000/tcp                ALLOW     Anywhere       # Backend API
+27018/tcp               ALLOW     Anywhere       # MongoDB (DEV ONLY)
+3001/tcp                ALLOW     Anywhere       # Notifications
+3002/tcp                ALLOW     Anywhere       # Stock Management
+
+# Outgoing rules (allow all by default)
+Anywhere                ALLOW OUT Anywhere
+
+# Incoming policy (deny all others)
+DEFAULT DENY INCOMING
+DEFAULT ALLOW OUTGOING

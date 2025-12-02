@@ -1,0 +1,102 @@
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    container_name: prod-frontend
+    ports:
+      - '80:3000'
+    environment:
+      - REACT_APP_API_URL=https://api.yourdomain.com
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - prod-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  backend:
+    build: ./backend
+    container_name: prod-backend
+    ports:
+      - '5000:5000'
+    environment:
+      - MONGO_URI=mongodb://prod-mongo:27017/prod_db
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - prod-mongo
+    networks:
+      - prod-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  prod-mongo:
+    image: mongo:latest
+    container_name: prod-mongo
+    # NO port exposed - MongoDB only accessible from internal network
+    environment:
+      - MONGO_INITDB_DATABASE=prod_db
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - prod-mongo-data:/data/db
+      - prod-mongo-config:/data/configdb
+    networks:
+      - prod-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  notifications:
+    build: ./microservices/notifications
+    container_name: prod-notifications
+    # NO port exposed - only accessible via backend
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - prod-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  stock-management:
+    build: ./microservices/stock-management
+    container_name: prod-stock-management
+    # NO port exposed - only accessible via backend
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - prod-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  prod-mongo-data:
+  prod-mongo-config:
+
+networks:
+  prod-network:
+    driver: bridge
