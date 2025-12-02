@@ -9,7 +9,7 @@ const Navbar = () => {
 
   // Simuler l'état d'authentification avec le localStorage
   const isAuthenticated = !!localStorage.getItem('token');
-  const username = localStorage.getItem('username'); // Récupère le nom d'utilisateur si connecté
+  const username = localStorage.getItem('username') || 'Utilisateur'; // Récupère le nom d'utilisateur si connecté
 
   const handleLogout = () => {
     // Supprimer les informations d'authentification
