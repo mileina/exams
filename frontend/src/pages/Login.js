@@ -18,13 +18,15 @@ const Login = () => {
         credentials
       );
       const { token, role, username } = response.data;
+      console.log('Login response:', { token, role, username });
 
       // Stockage du token et rôle dans le localStorage
       localStorage.setItem("token", token);
-      localStorage.setItem("username", username);
+      localStorage.setItem("username", username || credentials.username);
       localStorage.setItem("role", role);
 
-      navigate("/"); // Redirige vers la page d'accueil après la connexion
+      // Forcer un rechargement pour que le Navbar se mette à jour
+      window.location.href = "/";
     } catch (error) {
       // Gestion des erreurs
       if (error.response) {
