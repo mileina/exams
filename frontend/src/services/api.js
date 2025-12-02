@@ -28,8 +28,10 @@ export const fetchProducts = () => axios.get(`${API_BASE_URL}/products`);
 
 export const createOrder = (orderData) => {
     console.log(`appel fonction createOrder avec orderData ${JSON.stringify(orderData)}`)
-    const token = localStorage.getItem('token'); // Token de connexion
+    const token = localStorage.getItem('token'); 
     console.log(`token is ${token}`)
+    console.log('localStorage keys:', Object.keys(localStorage));
+    console.log('Full localStorage:', { token: localStorage.getItem('token'), username: localStorage.getItem('username'), role: localStorage.getItem('role') });
     return axios.post(`${API_BASE_URL}/orders`, orderData, {
         headers: {
             Authorization: `Bearer ${token}`,
