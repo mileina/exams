@@ -85,3 +85,45 @@ Livrables
 Tableau récapitulatif DNS
 
 Preuves SSL (captures d’écran)
+
+🟦 SPRINT 5 — Mise en exploitation & supervision
+
+🎯 Objectif : Fiabiliser l’exploitation (surveillance, sauvegardes, procédures).
+
+Tâches
+
+Documenter le runbook opérationnel (start/stop du stack, vérifs, rotation des logs).
+
+Créer un script de healthcheck pour tester les services clés (gateway, API, frontend) et l’état Docker.
+
+Formaliser le plan de sauvegarde/restauration MongoDB + rétention minimale.
+
+Lister les contrôles récurrents (certificats, timers systemd, volumes disque) et les responsables.
+
+Livrables
+
+Runbook d’exploitation : ops/runbook.md
+
+Script de supervision rapide : scripts/healthcheck.sh
+
+🟦 SPRINT 6 — CI/CD & Fiabilisation continue
+
+🎯 Objectif : Automatiser les déploiements et sécuriser la qualité continue.
+
+Tâches
+
+Mettre en place une pipeline CI (lint/tests) pour frontend, backend et microservices.
+
+Automatiser le déploiement Docker/Compose sur préprod puis prod (validation manuelle).
+
+Ajouter des tests de non-régression basiques (smoke/API) exécutés en CI.
+
+Configurer alertes email/webhook sur échecs de pipeline ou healthcheck.
+
+Livrables
+
+Pipeline CI/CD versionnée (ex. .github/workflows/ci-cd.yml)
+
+Rapport de tests smoke/API automatisés (export CI)
+
+Checklist de validation préprod → prod (critères et approbation manuelle)

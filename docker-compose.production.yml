@@ -25,9 +25,10 @@ services:
     ports:
       - '5000:5000'
     environment:
-      - MONGO_URI=mongodb://prod-mongo:27017/prod_db
+      - MONGO_URI=mongodb://prod_user:11043e0f6d98ddf7868f5eb5b8ac26c1@prod-mongo:27017/prod_db
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=b52921a866c88e8a419c006fddb99e2f1c1ed40cfae9a66a541de72a4cd787d1
+      - REACT_APP_API_URL=https://api.your-domain.com
     depends_on:
       - prod-mongo
     networks:
@@ -45,8 +46,8 @@ services:
     # NO port exposed - MongoDB only accessible from internal network
     environment:
       - MONGO_INITDB_DATABASE=prod_db
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=prod_user
+      - MONGO_INITDB_ROOT_PASSWORD=11043e0f6d98ddf7868f5eb5b8ac26c1
     volumes:
       - prod-mongo-data:/data/db
       - prod-mongo-config:/data/configdb
