@@ -1,0 +1,2 @@
+# Force Render to use Dockerfile instead of Static Site mode
+package.json
