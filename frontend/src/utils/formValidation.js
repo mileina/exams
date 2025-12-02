@@ -1,6 +1,8 @@
 // frontend/src/utils/formValidation.js
 // BUG #1 & #8 FIX: Validation complète et gestion des erreurs
 
+import React from 'react';
+
 export const validators = {
   // Validation email
   email: (value) => {
