@@ -1,16 +1,12 @@
 // backend/controllers/orderController.js
 const axios = require('axios');
 const Order = require('../models/Order');
-const orderLog = require('debug')('orderRoutes:console')
+const { logger, auditLogger } = require('../logger');
 
 
 exports.createOrder = async (req, res) => {
-  //userLog(`user is ${JSON.stringify(req.user)}`)
-  console.log(`user is in createOrder ${JSON.stringify(req.user)}`)
   //const { items, shippingAddress, paymentMethod } = req.body;
   const { items, shippingAddress, paymentMethod, shippingMethod, } = req.body;
-  console.log(`items are ${JSON.stringify(req.body)}`)
-  //const { items } = req.body;
   let userId = req.user.userId;
   // let shippingAddress = {
   //   "street": "123 Main St",
@@ -31,10 +27,7 @@ exports.createOrder = async (req, res) => {
 
   try {
     // Logique pour préparer les détails de la commande
-    const orderDetails = items.map(({ productId, quantity, price }) => {
-      console.log(`Produit ID : ${productId}, Quantité : ${quantity}, Price ${price}`);
-      return { productId, quantity, price };
-    });
+    const orderDetails = items.map(({ productId, quantity, price }) => ({ productId, quantity, price }));
 
     // Création de la commande dans la base de données
     const total = items.reduce(
@@ -54,7 +47,13 @@ exports.createOrder = async (req, res) => {
     // Sauvegarder la commande dans la base de données
     const savedOrder = await newOrder.save();
 
-    console.log('Commande sauvegardée :', savedOrder);
+    auditLogger.info('Commande créée', {
+      userId,
+      orderId: savedOrder._id.toString(),
+      total,
+      items: orderDetails.map(({ productId, quantity }) => ({ productId, quantity })),
+      shippingMethod
+    });
 
     // Appel au micro-service de notification
     try {
@@ -66,7 +65,7 @@ exports.createOrder = async (req, res) => {
           .join('\n')}`,
       });
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de la notification', error);
+      logger.warn('Erreur lors de l\'envoi de la notification', { error: error.message });
     }
 
     // Appel au micro-service de gestion des stocks
@@ -86,7 +85,7 @@ exports.createOrder = async (req, res) => {
       order: savedOrder,
     });
   } catch (error) {
-    console.error('Erreur lors de la création de la commande', error);
+    logger.error('Erreur lors de la création de la commande', { error: error.message });
     res.status(500).json({
       message: 'Une erreur est survenue lors de la création de la commande.',
     });
@@ -149,7 +148,7 @@ exports.createOrder = async (req, res) => {
 
 exports.deleteOrder = async(req, res)=>{
     const { orderId } = req.body;
-    console.log(`orderId to delete is ${orderId}`)
+    auditLogger.info('Suppression de commande demandée', { orderId, userId: req.user?.userId });
 }
 
 exports.getOrders = async(req, res)=>{
@@ -168,7 +167,6 @@ exports.updateOrderStatus = async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
 
-  console.log(`dump console log order id => ${orderId} status = ${status}`);
   try {
     // Vérification des données
     if (!status) {
@@ -188,7 +186,7 @@ exports.updateOrderStatus = async (req, res) => {
 
     res.status(200).json({ message: "Statut mis à jour avec succès", order });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de la commande :", error);
+    logger.error("Erreur lors de la mise à jour de la commande", { error: error.message, orderId, status });
     res.status(500).json({ message: "Erreur serveur." });
   }
 };

@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 //const authProxy = require('./routes/auth');
 const notifiProxy = require('./routes/notifi');
 const stockProxy = require('./routes/stock');
+const { logger, httpLogger } = require('./logger');
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 
 // Middleware pour analyser les requêtes JSON
 app.use(express.json());
+app.use(httpLogger);
 
 // Routes principales pour chaque microservice
 //app.use('/auth', authProxy);
@@ -20,5 +22,5 @@ app.use('/update-stock', stockProxy);
 // Lancer le Gateway
 const PORT = process.env.GATEWAY_PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`Gateway opérationnel sur le port ${PORT}`);
+  logger.info(`Gateway opérationnel sur le port ${PORT}`);
 });
