@@ -5,21 +5,21 @@ import axios from 'axios';
 const API_BASE_URL = (() => {
   // 1. Vérifier la variable d'env (priorité)
   if (process.env.REACT_APP_API_URL) {
-    console.log('🔗 API URL from env:', process.env.REACT_APP_API_URL);
-    return process.env.REACT_APP_API_URL;
+    console.log('🔗 API URL from env:', process.env.REACT_APP_API_URL + '/api');
+    return process.env.REACT_APP_API_URL + '/api';
   }
   // 2. En local (localhost:3000)
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('🔗 API URL (local dev):', 'http://localhost:5000');
-    return 'http://localhost:5000';
+    console.log('🔗 API URL (local dev):', 'http://localhost:5000/api');
+    return 'http://localhost:5000/api';
   }
   // 3. Sur Render (exams1-uemk.onrender.com)
   if (window.location.hostname === 'exams1-1.onrender.com') {
-    console.log('🔗 API URL (production):', 'https://exams1-uemk.onrender.com');
-    return 'https://exams1-uemk.onrender.com';
+    console.log('🔗 API URL (production):', 'https://exams1-uemk.onrender.com/api');
+    return 'https://exams1-uemk.onrender.com/api';
   }
   // 4. Fallback pour autres domaines
-  const apiUrl = `https://${window.location.hostname}`;
+  const apiUrl = `https://${window.location.hostname}/api`;
   console.log('🔗 API URL (production):', apiUrl);
   return apiUrl;
 })();
