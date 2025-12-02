@@ -20,10 +20,10 @@ const Login = () => {
       const { token, role, username } = response.data;
       console.log('Login response:', { token, role, username });
 
-      // Stockage du token et rôle dans le localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", username || credentials.username);
-      localStorage.setItem("role", role);
+      // Stockage du token et rôle dans le localStorage (seulement s'ils sont définis)
+      if (token) localStorage.setItem("token", token);
+      if (username) localStorage.setItem("username", username);
+      if (role) localStorage.setItem("role", role);
 
       // Forcer un rechargement pour que le Navbar se mette à jour
       window.location.href = "/";

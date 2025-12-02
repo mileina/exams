@@ -32,9 +32,10 @@ export const createOrder = (orderData) => {
     console.log(`token is ${token}`)
     console.log('localStorage keys:', Object.keys(localStorage));
     console.log('Full localStorage:', { token: localStorage.getItem('token'), username: localStorage.getItem('username'), role: localStorage.getItem('role') });
+    
     return axios.post(`${API_BASE_URL}/orders`, orderData, {
         headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: token && token !== 'undefined' ? `Bearer ${token}` : '',
         },
     });
 };
