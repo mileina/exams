@@ -25,7 +25,7 @@ services:
     ports:
       - '5000:5000'
     environment:
-      - MONGO_URI=mongodb://prod_user:11043e0f6d98ddf7868f5eb5b8ac26c1@prod-mongo:27017/prod_db
+      - MONGO_URI=mongodb+srv://Mil:11043e0f6d98ddf7868f5eb5b8ac26c1@cluster0.xejcq7x.mongodb.net/?appName=Cluster0
       - NODE_ENV=production
       - JWT_SECRET=b52921a866c88e8a419c006fddb99e2f1c1ed40cfae9a66a541de72a4cd787d1
       - REACT_APP_API_URL=https://api.your-domain.com
