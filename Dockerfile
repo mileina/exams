@@ -1,16 +1,30 @@
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+# Copier et installer dépendances frontend
+COPY frontend/package*.json ./
+RUN npm install
+
+# Copier le code source
+COPY frontend ./
+
+# Build React
+RUN npm run build
+
+# Étape 2 : Serveur de production
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copier et installer le backend
-COPY backend/package*.json ./backend/
-RUN cd backend && npm install --production
+# Installer serve pour servir l'app
+RUN npm install -g serve
 
-# Copier le code
-COPY backend ./backend
+# Copier le build depuis l'étape précédente
+COPY --from=build /app/build ./build
 
 # Exposer le port
-EXPOSE 5000
+EXPOSE 3000
 
-# Lancer le backend
-CMD ["node", "backend/server.js"]
+# Lancer l'app
+CMD ["serve", "-s", "build", "-l", "3000"]
