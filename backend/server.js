@@ -8,12 +8,14 @@ const { logger, httpLogger } = require('./logger');
 const app = express();
 connectDB();
 
-// CORS configuration - Production safe
+// CORS configuration - configurable via ALLOWED_ORIGINS (comma-separated)
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [];
 const allowedOrigins = [
-  process.env.REACT_APP_API_URL || 'http://localhost:3000',
-  'http://localhost:3000',
-  'http://localhost:5000'
-];
+  ...allowedOriginsEnv,
+  'http://localhost:3000'
+].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {

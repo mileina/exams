@@ -35,15 +35,64 @@ exports.login = async (req, res) => {
 
 
 exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, confirmPassword } = req.body;
 
   try {
-    // Vérifier si l'email ou le nom d'utilisateur existe déjà
-    const existingUser = await User.findOne({ email });
+    // BUG #1 FIX: Validation des champs obligatoires
+    if (!username || !email || !password || !confirmPassword) {
+      return res.status(400).json({ 
+        message: 'Tous les champs sont obligatoires',
+        errors: {
+          username: !username ? 'Le nom d\'utilisateur est requis' : null,
+          email: !email ? 'L\'email est requis' : null,
+          password: !password ? 'Le mot de passe est requis' : null,
+          confirmPassword: !confirmPassword ? 'La confirmation est requise' : null
+        }
+      });
+    }
+
+    // Validation longueur username
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({ 
+        message: 'Le nom d\'utilisateur doit faire entre 3 et 30 caractères'
+      });
+    }
+
+    // Validation email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        message: 'Format d\'email invalide'
+      });
+    }
+
+    // Validation mot de passe force
+    if (password.length < 8) {
+      return res.status(400).json({ 
+        message: 'Le mot de passe doit faire au moins 8 caractères',
+        hint: 'Incluez majuscules, minuscules, chiffres et caractères spéciaux'
+      });
+    }
+
+    // Vérification confirmation password
+    if (password !== confirmPassword) {
+      return res.status(400).json({ 
+        message: 'Les mots de passe ne correspondent pas'
+      });
+    }
+
+    // Vérifier si l'email ou le username existe déjà
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { username }] 
+    });
     
     if (existingUser) {
-      auditLogger.warn('Tentative d\'inscription sur email déjà utilisé', { email, username, ip: req.ip });
-      return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+      auditLogger.warn('Tentative d\'inscription sur email/username déjà utilisé', { email, username, ip: req.ip });
+      return res.status(400).json({ 
+        message: existingUser.email === email 
+          ? 'Cet email est déjà utilisé' 
+          : 'Ce nom d\'utilisateur existe déjà'
+      });
     }
 
     // Créer un nouvel utilisateur
